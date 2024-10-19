@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Speed Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        #text-display {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            min-height: 100px;
+        }
+
+        .current-word {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .correct {
+            color: #28a745;
+        }
+
+        .incorrect {
+            color: #dc3545;
+            text-decoration: underline wavy #dc3545;
+        }
+
+        #input-field {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        #input-field:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Typing Speed Test</h1>
+            <p>Test your typing speed and accuracy!</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="time">60</div>
+                <div class="stat-label">Seconds</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="wpm">0</div>
+                <div class="stat-label">WPM</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="accuracy">0</div>
+                <div class="stat-label">Accuracy %</div>
+            </div>
+        </div>
+
+        <div id="text-display"></div>
+        <input type="text" id="input-field" placeholder="Start typing here..." disabled>
+        <button id="start-btn" class="button">Start Test</button>
+    </div>
+
+    <script>
+        const words = [
+            "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", 
+            "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+            "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+            "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+            "programming", "computer", "software", "developer", "keyboard", "mouse", "screen",
+            "typing", "practice", "speed", "test", "accuracy", "words", "minute", "skill"
+        ];
+
+        let currentWordIndex = 0;
+        let testTime = 60;
+        let timer = null;
+        let isTestActive = false;
+        let correctWords = 0;
+        let totalTypedWords = 0;
+
+        const textDisplay = document.getElementById("text-display");
+        const inputField = document.getElementById("input-field");
+        const startButton = document.getElementById("start-btn");
+        const timeDisplay = document.getElementById("time");
+        const wpmDisplay = document.getElementById("wpm");
+        const accuracyDisplay = document.getElementById("accuracy");
+
+        function generateText() {
+            const wordCount = 50;
+            let text = [];
+            for (let i = 0; i < wordCount; i++) {
+                text.push(words[Math.floor(Math.random() * words.length)]);
+            }
+            return text;
+        }
+
+        function displayText(text) {
+            textDisplay.innerHTML = text.map((word, index) => 
+                `<span class="word ${index === currentWordIndex ? 'current-word' : ''}">${word}</span>`
+            ).join(' ');
+        }
+
+        function startTest() {
+            isTestActive = true;
+            currentWordIndex = 0;
+            correctWords = 0;
+            totalTypedWords = 0;
+            testTime = 60;
+            
+            const textToType = generateText();
+            displayText(textToType);
+            
+            inputField.value = '';
+            inputField.disabled = false;
+            inputField.focus();
+            startButton.disabled = true;
+            startButton.classList.add('disabled');
+
+            timer = setInterval(() => {
+                testTime--;
+                timeDisplay.textContent = testTime;
+                
+                if (testTime <= 0) {
+                    endTest();
+                }
+            }, 1000);
+        }
+
+        function endTest() {
+            clearInterval(timer);
+            isTestActive = false;
+            inputField.disabled = true;
+            startButton.disabled = false;
+            startButton.classList.remove('disabled');
+
+            // Calculate final WPM and accuracy
+            const wpm = Math.round((correctWords / 1) * 60);
+            const accuracy = totalTypedWords > 0 
+                ? Math.round((correctWords / totalTypedWords) * 100) 
+                : 0;
+
+            wpmDisplay.textContent = wpm;
+            accuracyDisplay.textContent = accuracy;
+        }
+
+        function checkWord() {
+            const inputWord = inputField.value.trim();
+            const currentWord = textDisplay.querySelectorAll('.word')[currentWordIndex];
+            
+            if (inputWord === '') return;
+
+            if (inputWord === currentWord.textContent) {
+                currentWord.classList.add('correct');
+                correctWords++;
+            } else {
+                currentWord.classList.add('incorrect');
+            }
+
+            totalTypedWords++;
+            currentWordIndex++;
+            inputField.value = '';
+
+            // Update current word highlighting
+            const words = textDisplay.querySelectorAll('.word');
+            words.forEach(word => word.classList.remove('current-word'));
+            if (currentWordIndex < words.length) {
+                words[currentWordIndex].classList.add('current-word');
+            }
+
+            // Update WPM and accuracy in real-time
+            const timeElapsed = (60 - testTime) / 60;
+            if (timeElapsed > 0) {
+                const wpm = Math.round((correctWords / timeElapsed));
+                const accuracy = Math.round((correctWords / totalTypedWords) * 100);
+                wpmDisplay.textContent = wpm;
+                accuracyDisplay.textContent = accuracy;
+            }
+        }
+
+        startButton.addEventListener('click', startTest);
+
+        inputField.addEventListener('keyup', (e) => {
+            if (!isTestActive) return;
+            
+            if (e.key === ' ') {
+                checkWord();
+            }
+        });
+
+        // Initial text display
+        displayText(generateText());
+    </script>
+</body>
+</html>
